@@ -1,0 +1,8 @@
+prefix=/home/robotis/catkin_ws/install
+
+Name: urdf-rviz
+Description: Description of urdf-rviz
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

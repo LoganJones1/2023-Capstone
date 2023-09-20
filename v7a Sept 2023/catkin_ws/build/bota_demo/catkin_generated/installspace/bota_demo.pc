@@ -1,0 +1,8 @@
+prefix=/home/robotis/catkin_ws/install
+
+Name: bota_demo
+Description: Description of bota_demo
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
