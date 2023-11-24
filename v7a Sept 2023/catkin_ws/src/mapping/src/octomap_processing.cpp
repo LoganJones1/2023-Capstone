@@ -15,9 +15,7 @@ void processPointCloudToOctomap(const sensor_msgs::PointCloud2& cloudMsg, OcTree
         return;
     }
 
-    // TODO: Implement conversion of ROS PointCloud2 to PCL PointCloud
-
-    // TODO: Implement conversion of PCL PointCloud to Octomap Pointcloud
+    // TODO: Implement conversion of ROS PointCloud2 Octomap Pointcloud
 
     // Define the sensor origin (adjust based on actual sensor position)
     point3d sensorOrigin(0, 0, 0);
