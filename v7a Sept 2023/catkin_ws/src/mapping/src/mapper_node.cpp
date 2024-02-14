@@ -15,7 +15,7 @@ public:
 
     OctomapMapper() : nh("~"), octree(0.1) { //0.1mm resolution
         velodyne_sub = nh.subscribe("/velodyne_points", 10, &OctomapMapper::pointCloudCallback, this); // subscribe to velodyne
-        imu_sub = nh.subscribe("imu", 1000, &OctomapMapper::imuCallback, this); // RYAN: Subscribe to imu topic
+        imu_sub = nh.subscribe("/camera/imu", 1000, &OctomapMapper::imuCallback, this); // RYAN: Subscribe to imu topic
         sensorOrigin = octomap::point3d(); // RYAN: Initialization of sensorOrigin
         velocity = geometry_msgs::Vector3(); // RYAN: Initialization of sensorOrigin
     }
@@ -54,15 +54,16 @@ public:
     
     The imu msg does not have data for direct velocity, only linear acceleration.
     This linear acceleration will be added to the velocity data member.
-    At the same time, the velocity will be added
+    At the same time, the velocity will be added.
+    The imu callback is called 200 times per second (which is the fps of the camera's gyroscope)
     */
     void imuCallback(const sensor_msgs::Imu::ConstPtr& imu_msg) {
         octomap::point3d toAdd(velocity.x, velocity.y, velocity.z);
-        sensorOrigin -= toAdd;
+        sensorOrigin -= toAdd / 200;
 
-        velocity.x += imu_msg->linear_acceleration.x;
-        velocity.y += imu_msg->linear_acceleration.y;
-        velocity.z += imu_msg->linear_acceleration.z;
+        velocity.x += imu_msg->linear_acceleration.x / 200;
+        velocity.y += imu_msg->linear_acceleration.y / 200;
+        velocity.z += imu_msg->linear_acceleration.z / 200;
     }
 
     void spin() {
