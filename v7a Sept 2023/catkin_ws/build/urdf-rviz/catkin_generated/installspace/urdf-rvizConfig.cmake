@@ -67,14 +67,14 @@ set(urdf-rviz_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(urdf-rviz_SOURCE_PREFIX /home/robotis/catkin_ws/src/urdf-rviz)
-  set(urdf-rviz_DEVEL_PREFIX /home/robotis/catkin_ws/devel)
+  set(urdf-rviz_SOURCE_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/urdf-rviz)
+  set(urdf-rviz_DEVEL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel)
   set(urdf-rviz_INSTALL_PREFIX "")
   set(urdf-rviz_PREFIX ${urdf-rviz_DEVEL_PREFIX})
 else()
   set(urdf-rviz_SOURCE_PREFIX "")
   set(urdf-rviz_DEVEL_PREFIX "")
-  set(urdf-rviz_INSTALL_PREFIX /home/robotis/catkin_ws/install)
+  set(urdf-rviz_INSTALL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install)
   set(urdf-rviz_PREFIX ${urdf-rviz_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/robotis/catkin_ws/install/lib;/home/robotis/catkin_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install/lib;/media/sf_2023-Capstone/catkin_ws2/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

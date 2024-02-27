@@ -1,4 +1,4 @@
-prefix=/home/robotis/catkin_ws/devel
+prefix=/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel
 
 Name: transcent_urdf
 Description: Description of transcent_urdf

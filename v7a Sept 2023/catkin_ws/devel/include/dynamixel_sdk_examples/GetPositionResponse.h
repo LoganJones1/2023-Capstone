@@ -33,7 +33,7 @@ struct GetPositionResponse_
 
 
 
-   typedef int64_t _position_type;
+   typedef int32_t _position_type;
   _position_type position;
 
 
@@ -122,12 +122,12 @@ struct MD5Sum< ::dynamixel_sdk_examples::GetPositionResponse_<ContainerAllocator
 {
   static const char* value()
   {
-    return "7b97bb7ed9a33fb2edbc8c809cbaebf8";
+    return "ada70156e12e6e31948c64c60d8bb212";
   }
 
   static const char* value(const ::dynamixel_sdk_examples::GetPositionResponse_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x7b97bb7ed9a33fb2ULL;
-  static const uint64_t static_value2 = 0xedbc8c809cbaebf8ULL;
+  static const uint64_t static_value1 = 0xada70156e12e6e31ULL;
+  static const uint64_t static_value2 = 0x948c64c60d8bb212ULL;
 };
 
 template<class ContainerAllocator>
@@ -146,7 +146,7 @@ struct Definition< ::dynamixel_sdk_examples::GetPositionResponse_<ContainerAlloc
 {
   static const char* value()
   {
-    return "int64 position\n"
+    return "int32 position\n"
 "\n"
 ;
   }
@@ -186,7 +186,7 @@ struct Printer< ::dynamixel_sdk_examples::GetPositionResponse_<ContainerAllocato
   template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::dynamixel_sdk_examples::GetPositionResponse_<ContainerAllocator>& v)
   {
     s << indent << "position: ";
-    Printer<int64_t>::stream(s, indent + "  ", v.position);
+    Printer<int32_t>::stream(s, indent + "  ", v.position);
   }
 };
 

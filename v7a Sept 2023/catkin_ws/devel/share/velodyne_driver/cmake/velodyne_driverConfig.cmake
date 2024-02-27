@@ -67,14 +67,14 @@ set(velodyne_driver_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("TRUE" STREQUAL "TRUE")
-  set(velodyne_driver_SOURCE_PREFIX /home/robotis/catkin_ws/src/velodyne/velodyne_driver)
-  set(velodyne_driver_DEVEL_PREFIX /home/robotis/catkin_ws/devel)
+  set(velodyne_driver_SOURCE_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/velodyne-master/velodyne_driver)
+  set(velodyne_driver_DEVEL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel)
   set(velodyne_driver_INSTALL_PREFIX "")
   set(velodyne_driver_PREFIX ${velodyne_driver_DEVEL_PREFIX})
 else()
   set(velodyne_driver_SOURCE_PREFIX "")
   set(velodyne_driver_DEVEL_PREFIX "")
-  set(velodyne_driver_INSTALL_PREFIX /home/robotis/catkin_ws/install)
+  set(velodyne_driver_INSTALL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install)
   set(velodyne_driver_PREFIX ${velodyne_driver_INSTALL_PREFIX})
 endif()
 
@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(velodyne_driver_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/home/robotis/catkin_ws/devel/include;/home/robotis/catkin_ws/src/velodyne/velodyne_driver/include " STREQUAL " ")
+if(NOT "/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel/include;/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/velodyne-master/velodyne_driver/include " STREQUAL " ")
   set(velodyne_driver_INCLUDE_DIRS "")
-  set(_include_dirs "/home/robotis/catkin_ws/devel/include;/home/robotis/catkin_ws/src/velodyne/velodyne_driver/include")
+  set(_include_dirs "/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel/include;/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/velodyne-master/velodyne_driver/include")
   if(NOT "https://github.com/ros-drivers/velodyne/issues " STREQUAL " ")
     set(_report "Check the issue tracker 'https://github.com/ros-drivers/velodyne/issues' and consider creating a ticket if the problem has not been reported yet.")
   elseif(NOT "http://www.ros.org/wiki/velodyne_driver " STREQUAL " ")
@@ -110,7 +110,7 @@ if(NOT "/home/robotis/catkin_ws/devel/include;/home/robotis/catkin_ws/src/velody
         message(FATAL_ERROR "Project 'velodyne_driver' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  ${_report}")
       endif()
     else()
-      message(FATAL_ERROR "Project 'velodyne_driver' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/robotis/catkin_ws/src/velodyne/velodyne_driver/${idir}'.  ${_report}")
+      message(FATAL_ERROR "Project 'velodyne_driver' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/velodyne-master/velodyne_driver/${idir}'.  ${_report}")
     endif()
     _list_append_unique(velodyne_driver_INCLUDE_DIRS ${include})
   endforeach()
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/robotis/catkin_ws/devel/lib;/home/robotis/catkin_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel/lib;/media/sf_2023-Capstone/catkin_ws2/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

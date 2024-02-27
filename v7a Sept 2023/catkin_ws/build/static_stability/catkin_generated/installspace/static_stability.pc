@@ -1,0 +1,8 @@
+prefix=/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install
+
+Name: static_stability
+Description: Description of static_stability
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

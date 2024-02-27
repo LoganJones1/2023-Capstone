@@ -11,7 +11,7 @@
 
 # since this file is sourced either use the provided _CATKIN_SETUP_DIR
 # or fall back to the destination set at configure time
-: ${_CATKIN_SETUP_DIR:=/home/robotis/catkin_ws/install}
+: ${_CATKIN_SETUP_DIR:=/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install}
 _SETUP_UTIL="$_CATKIN_SETUP_DIR/_setup_util.py"
 unset _CATKIN_SETUP_DIR
 

@@ -121,14 +121,14 @@ import struct
 
 
 class GetPositionResponse(genpy.Message):
-  _md5sum = "7b97bb7ed9a33fb2edbc8c809cbaebf8"
+  _md5sum = "ada70156e12e6e31948c64c60d8bb212"
   _type = "dynamixel_sdk_examples/GetPositionResponse"
   _has_header = False  # flag to mark the presence of a Header object
-  _full_text = """int64 position
+  _full_text = """int32 position
 
 """
   __slots__ = ['position']
-  _slot_types = ['int64']
+  _slot_types = ['int32']
 
   def __init__(self, *args, **kwds):
     """
@@ -165,7 +165,7 @@ class GetPositionResponse(genpy.Message):
     """
     try:
       _x = self.position
-      buff.write(_get_struct_q().pack(_x))
+      buff.write(_get_struct_i().pack(_x))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -179,8 +179,8 @@ class GetPositionResponse(genpy.Message):
     try:
       end = 0
       start = end
-      end += 8
-      (self.position,) = _get_struct_q().unpack(str[start:end])
+      end += 4
+      (self.position,) = _get_struct_i().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -194,7 +194,7 @@ class GetPositionResponse(genpy.Message):
     """
     try:
       _x = self.position
-      buff.write(_get_struct_q().pack(_x))
+      buff.write(_get_struct_i().pack(_x))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -209,8 +209,8 @@ class GetPositionResponse(genpy.Message):
     try:
       end = 0
       start = end
-      end += 8
-      (self.position,) = _get_struct_q().unpack(str[start:end])
+      end += 4
+      (self.position,) = _get_struct_i().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -219,14 +219,14 @@ _struct_I = genpy.struct_I
 def _get_struct_I():
     global _struct_I
     return _struct_I
-_struct_q = None
-def _get_struct_q():
-    global _struct_q
-    if _struct_q is None:
-        _struct_q = struct.Struct("<q")
-    return _struct_q
+_struct_i = None
+def _get_struct_i():
+    global _struct_i
+    if _struct_i is None:
+        _struct_i = struct.Struct("<i")
+    return _struct_i
 class GetPosition(object):
   _type          = 'dynamixel_sdk_examples/GetPosition'
-  _md5sum = '0f65f07b4ad30389daa8b9a841b3ec2a'
+  _md5sum = 'b532ace3b383dc4c9e64687156423ac0'
   _request_class  = GetPositionRequest
   _response_class = GetPositionResponse

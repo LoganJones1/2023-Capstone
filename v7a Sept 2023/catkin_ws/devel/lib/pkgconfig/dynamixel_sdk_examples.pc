@@ -1,8 +1,8 @@
-prefix=/home/robotis/catkin_ws/devel
+prefix=/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel
 
 Name: dynamixel_sdk_examples
 Description: Description of dynamixel_sdk_examples
 Version: 3.7.51
-Cflags: -I/home/robotis/catkin_ws/devel/include
+Cflags: -I/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel/include
 Libs: -L${prefix}/lib 
 Requires: roscpp std_msgs dynamixel_sdk

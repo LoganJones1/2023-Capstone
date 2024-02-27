@@ -67,14 +67,14 @@ set(gui_tutorials_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(gui_tutorials_SOURCE_PREFIX /home/robotis/catkin_ws/src/gui_tutorials)
-  set(gui_tutorials_DEVEL_PREFIX /home/robotis/catkin_ws/devel)
+  set(gui_tutorials_SOURCE_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/src/gui_tutorials)
+  set(gui_tutorials_DEVEL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel)
   set(gui_tutorials_INSTALL_PREFIX "")
   set(gui_tutorials_PREFIX ${gui_tutorials_DEVEL_PREFIX})
 else()
   set(gui_tutorials_SOURCE_PREFIX "")
   set(gui_tutorials_DEVEL_PREFIX "")
-  set(gui_tutorials_INSTALL_PREFIX /home/robotis/catkin_ws/install)
+  set(gui_tutorials_INSTALL_PREFIX /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install)
   set(gui_tutorials_PREFIX ${gui_tutorials_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/robotis/catkin_ws/install/lib;/home/robotis/catkin_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/install/lib;/media/sf_2023-Capstone/catkin_ws2/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

@@ -40,7 +40,7 @@ template<>
 struct MD5Sum< ::dynamixel_sdk_examples::GetPosition > {
   static const char* value()
   {
-    return "0f65f07b4ad30389daa8b9a841b3ec2a";
+    return "b532ace3b383dc4c9e64687156423ac0";
   }
 
   static const char* value(const ::dynamixel_sdk_examples::GetPosition&) { return value(); }

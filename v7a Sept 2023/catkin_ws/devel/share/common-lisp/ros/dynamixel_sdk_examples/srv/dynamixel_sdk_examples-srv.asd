@@ -6,8 +6,6 @@
   :components ((:file "_package")
     (:file "BulkGetItem" :depends-on ("_package_BulkGetItem"))
     (:file "_package_BulkGetItem" :depends-on ("_package"))
-    (:file "GetMotorSensors" :depends-on ("_package_GetMotorSensors"))
-    (:file "_package_GetMotorSensors" :depends-on ("_package"))
     (:file "GetPosition" :depends-on ("_package_GetPosition"))
     (:file "_package_GetPosition" :depends-on ("_package"))
     (:file "SyncGetPosition" :depends-on ("_package_SyncGetPosition"))

@@ -107,7 +107,7 @@ class GetPositionResponse {
   static serialize(obj, buffer, bufferOffset) {
     // Serializes a message object of type GetPositionResponse
     // Serialize message field [position]
-    bufferOffset = _serializer.int64(obj.position, buffer, bufferOffset);
+    bufferOffset = _serializer.int32(obj.position, buffer, bufferOffset);
     return bufferOffset;
   }
 
@@ -116,12 +116,12 @@ class GetPositionResponse {
     let len;
     let data = new GetPositionResponse(null);
     // Deserialize message field [position]
-    data.position = _deserializer.int64(buffer, bufferOffset);
+    data.position = _deserializer.int32(buffer, bufferOffset);
     return data;
   }
 
   static getMessageSize(object) {
-    return 8;
+    return 4;
   }
 
   static datatype() {
@@ -131,13 +131,13 @@ class GetPositionResponse {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return '7b97bb7ed9a33fb2edbc8c809cbaebf8';
+    return 'ada70156e12e6e31948c64c60d8bb212';
   }
 
   static messageDefinition() {
     // Returns full string definition for message
     return `
-    int64 position
+    int32 position
     
     
     `;
@@ -163,6 +163,6 @@ class GetPositionResponse {
 module.exports = {
   Request: GetPositionRequest,
   Response: GetPositionResponse,
-  md5sum() { return '0f65f07b4ad30389daa8b9a841b3ec2a'; },
+  md5sum() { return 'b532ace3b383dc4c9e64687156423ac0'; },
   datatype() { return 'dynamixel_sdk_examples/GetPosition'; }
 };

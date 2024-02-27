@@ -1,8 +1,0 @@
-prefix=/home/robotis/catkin_ws/devel
-
-Name: msf_timing
-Description: Description of msf_timing
-Version: 1.0.1
-Cflags: -I/home/robotis/catkin_ws/src/ethzasl_msf/msf_timing/include
-Libs: -L${prefix}/lib -lmsf_timing
-Requires: 

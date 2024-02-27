@@ -43,10 +43,10 @@
   "dynamixel_sdk_examples/GetPositionRequest")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<GetPosition-request>)))
   "Returns md5sum for a message object of type '<GetPosition-request>"
-  "0f65f07b4ad30389daa8b9a841b3ec2a")
+  "b532ace3b383dc4c9e64687156423ac0")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'GetPosition-request)))
   "Returns md5sum for a message object of type 'GetPosition-request"
-  "0f65f07b4ad30389daa8b9a841b3ec2a")
+  "b532ace3b383dc4c9e64687156423ac0")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<GetPosition-request>)))
   "Returns full string definition for message of type '<GetPosition-request>"
   (cl:format cl:nil "uint8 id~%~%~%"))
@@ -86,15 +86,11 @@
   (position m))
 (cl:defmethod roslisp-msg-protocol:serialize ((msg <GetPosition-response>) ostream)
   "Serializes a message object of type '<GetPosition-response>"
-  (cl:let* ((signed (cl:slot-value msg 'position)) (unsigned (cl:if (cl:< signed 0) (cl:+ signed 18446744073709551616) signed)))
+  (cl:let* ((signed (cl:slot-value msg 'position)) (unsigned (cl:if (cl:< signed 0) (cl:+ signed 4294967296) signed)))
     (cl:write-byte (cl:ldb (cl:byte 8 0) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 16) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 24) unsigned) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 32) unsigned) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 40) unsigned) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 48) unsigned) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 56) unsigned) ostream)
     )
 )
 (cl:defmethod roslisp-msg-protocol:deserialize ((msg <GetPosition-response>) istream)
@@ -104,11 +100,7 @@
       (cl:setf (cl:ldb (cl:byte 8 8) unsigned) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 16) unsigned) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) unsigned) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 32) unsigned) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 40) unsigned) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 48) unsigned) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 56) unsigned) (cl:read-byte istream))
-      (cl:setf (cl:slot-value msg 'position) (cl:if (cl:< unsigned 9223372036854775808) unsigned (cl:- unsigned 18446744073709551616))))
+      (cl:setf (cl:slot-value msg 'position) (cl:if (cl:< unsigned 2147483648) unsigned (cl:- unsigned 4294967296))))
   msg
 )
 (cl:defmethod roslisp-msg-protocol:ros-datatype ((msg (cl:eql '<GetPosition-response>)))
@@ -119,19 +111,19 @@
   "dynamixel_sdk_examples/GetPositionResponse")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<GetPosition-response>)))
   "Returns md5sum for a message object of type '<GetPosition-response>"
-  "0f65f07b4ad30389daa8b9a841b3ec2a")
+  "b532ace3b383dc4c9e64687156423ac0")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'GetPosition-response)))
   "Returns md5sum for a message object of type 'GetPosition-response"
-  "0f65f07b4ad30389daa8b9a841b3ec2a")
+  "b532ace3b383dc4c9e64687156423ac0")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<GetPosition-response>)))
   "Returns full string definition for message of type '<GetPosition-response>"
-  (cl:format cl:nil "int64 position~%~%~%~%"))
+  (cl:format cl:nil "int32 position~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'GetPosition-response)))
   "Returns full string definition for message of type 'GetPosition-response"
-  (cl:format cl:nil "int64 position~%~%~%~%"))
+  (cl:format cl:nil "int32 position~%~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <GetPosition-response>))
   (cl:+ 0
-     8
+     4
 ))
 (cl:defmethod roslisp-msg-protocol:ros-message-to-list ((msg <GetPosition-response>))
   "Converts a ROS message object to a list"

@@ -1,8 +1,8 @@
-prefix=/home/robotis/catkin_ws/devel
+prefix=/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel
 
 Name: velodyne_msgs
 Description: Description of velodyne_msgs
 Version: 1.7.0
-Cflags: -I/home/robotis/catkin_ws/devel/include
+Cflags: -I/media/sf_Git_Repo/2023-Capstone/v7a Sept 2023/catkin_ws/devel/include
 Libs: -L${prefix}/lib 
 Requires: message_runtime std_msgs

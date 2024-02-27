@@ -1,8 +1,0 @@
-prefix=/home/robotis/catkin_ws/devel
-
-Name: msf_updates
-Description: Description of msf_updates
-Version: 1.0.1
-Cflags: -I/home/robotis/catkin_ws/devel/include -I/home/robotis/catkin_ws/src/ethzasl_msf/msf_updates/include -I/home/robotis/catkin_ws/src/ethzasl_msf/msf_core/include -I/home/robotis/catkin_ws/src/ethzasl_msf/msf_timing/include -I/opt/ros/noetic/include -I/opt/ros/noetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -I/usr/include -I/usr/include/eigen3
-Libs: -L${prefix}/lib -lpose_distorter
-Requires: roscpp msf_core geometry_msgs sensor_fusion_comm
