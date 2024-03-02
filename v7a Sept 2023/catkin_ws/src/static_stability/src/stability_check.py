@@ -61,3 +61,28 @@ if __name__ == "__main__":
     """
     contactPoints = []  # an array/list of vectors
     # End of: CALCULATE CONTACT POINTS
+
+    """
+    CALCULATE POLYGON
+    -----------------
+    Calculate the stabilty poligon that is the largest possible triangle from
+    considering all contact points.
+    """
+    cws = []    # List of all contact points that make up the support poligon
+    # End of: CALCULATE POLYGON
+
+    """
+    CALCULATE STABILITY
+    -------------------
+    Calculate whether the center of mass (gravity vector) itersects with the
+    support polygon.
+    """
+    stable = False    # boolean
+    # End of: CALCULATE STABILITY
+
+    """
+    PUBLISH STABILITY STATUS
+    ------------------------
+    Publish the status of the stability of the robot to the ROS system.
+    """
+    # End of: CALCULATE STABILITY
