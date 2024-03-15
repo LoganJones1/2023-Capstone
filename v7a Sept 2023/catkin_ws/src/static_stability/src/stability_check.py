@@ -17,6 +17,8 @@ from geometry_msgs.msg import Vector3
 from dynamixel_sdk import *  # Assumes Dynamixel SDK library is correctly set up and accessible
 import tf.transformations
 from dynamixel_sdk import PortHandler, PacketHandler
+from geometry_msgs.msg import WrenchStamped
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -35,6 +37,29 @@ ADDR_PRESENT_POSITION = 123  #update
 # Global Variables
 vecGravity = Vector3()
 ftData = {}
+fx_lwr = 0
+fy_lwr = 0
+fz_lwr = 0
+tx_lwr = 0
+ty_lwr = 0
+tz_lwr = 0
+fx_rwr = 0
+fy_rwr = 0
+fz_rwr = 0
+tx_rwr = 0
+ty_rwr = 0
+tz_rwr = 0
+fx_ll = 0
+fy_ll = 0
+fz_ll = 0
+tx_ll = 0
+ty_ll = 0
+tz_ll = 0
+
+
+
+
+sensors_visu = [0,0,0,0,0]
 
 
 # Setup
@@ -49,6 +74,64 @@ if not portHandler.setBaudRate(BAUDRATE):
 
 
 # Functions
+    
+#callback for force readings published by left wrist sensor
+
+def wrench_callback_lwr(msg_lwr):
+    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
+	#print("**********LEFT WRIST**********")
+    fx_lwr = msg_lwr.wrench.force.x
+    fy_lwr = msg_lwr.wrench.force.y
+    fz_lwr = msg_lwr.wrench.force.z
+    tx_lwr = msg_lwr.wrench.torque.x
+    ty_lwr = msg_lwr.wrench.torque.y
+    tz_lwr = msg_lwr.wrench.torque.z
+
+#****************************************************************************************
+
+	
+#callback for force readings published by right wrrist sensor
+
+def wrench_callback_rwr(msg_rwr):
+    global fx_rwr, fy_rwr, fz_rwr, tx_rwr, ty_rwr, tz_rwr
+    fx_rwr = msg_rwr.wrench.force.x
+    fy_rwr = msg_rwr.wrench.force.y
+    fz_rwr = msg_rwr.wrench.force.z
+    tx_rwr = msg_rwr.wrench.torque.x
+    ty_rwr = msg_rwr.wrench.torque.y
+    tz_rwr = msg_rwr.wrench.torque.z
+
+#*****************************************************************************************************
+
+#callback function for readings published by left leg sensor
+
+def wrench_callback_ll(msg_ll):
+    global fx_ll, fy_ll, fz_ll, tx_ll, ty_ll, tz_ll
+    fx_ll = msg_ll.wrench.force.x
+    fy_ll = msg_ll.wrench.force.y
+    fz_ll = msg_ll.wrench.force.z
+    tx_ll = msg_ll.wrench.torque.x
+    ty_ll = msg_ll.wrench.torque.y
+    tz_ll = msg_ll.wrench.torque.z
+
+#***************************************************************************************
+
+# callback function for right leg sensor
+
+def wrench_callback_rl(msg_rl):
+    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
+	#print("**********LEFT WRIST**********")
+    fx_lwr = msg_rl.wrench.force.x
+    fy_lwr = msg_rl.wrench.force.y
+    fz_lwr = msg_rl.wrench.force.z
+    tx_lwr = msg_rl.wrench.torque.x
+    ty_lwr = msg_rl.wrench.torque.y
+    tz_lwr = msg_rl.wrench.torque.z
+	
+#****************************************************************************************
+
+
+
 """
 LOAD ENDPOINT VECTORS (Incomplete)
 ASSIGNEE: Logan Jones
@@ -83,7 +166,15 @@ def force_torque_callback(data):
 
 def load_ft_data():
     global ftData
-    # ADD CODE HERE
+
+    rospy.init_node('register')
+
+    publisher = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=10)
+
+    rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
+    rospy.Subscriber("/bus1/ft_sensor1/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rwr)
+    rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
+    rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
     limbsInContact = {'leftHand': False, 'rightHand': False,    # mock data
                       'leftFoot': False, 'rightFoot': False}    # needs updating
     return limbsInContact
