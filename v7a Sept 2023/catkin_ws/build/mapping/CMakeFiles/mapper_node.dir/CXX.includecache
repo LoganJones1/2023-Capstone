@@ -15,7 +15,15 @@ sensor_msgs/Imu.h
 -
 geometry_msgs/Vector3.h
 -
+geometry_msgs/Quaternion.h
+-
 octomap/octomap.h
+-
+octomap/math/Quaternion.h
+-
+octomap/math/Pose6D.h
+-
+octomap/math/Vector3.h
 -
 octomap_ros/conversions.h
 -

@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 
 # File: stability_check.py
 # Author: Logan Jones
@@ -11,8 +10,7 @@
 import rospy
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Vector3
-#from sensor_msgs.msg import ForceTorqueSensorMessageType # Toshi, update this
+from sensor_msgs.msg import ForceTorqueSensorMessageType # Toshi, update this
 from geometry_msgs.msg import Vector3
 from dynamixel_sdk import *  # Assumes Dynamixel SDK library is correctly set up and accessible
 import tf.transformations
@@ -25,10 +23,10 @@ import matplotlib.pyplot as plt
 IMU_TOPIC = "imu/data"
 FORCE_TORQUE_TOPIC = "" # Toshi, update this
 STABILITY_STATUS_TOPIC = "robot/stability_status"
-# DYNAMIXEL_MOTOR_IDS = [1, 2, 3, 4]  #update
-# DEVICENAME = '/dev/ttyUSB0'
-# BAUDRATE = 57600
-# PROTOCOL_VERSION = 2.0
+DYNAMIXEL_MOTOR_IDS = [1, 2, 3, 4]  #update
+DEVICENAME = '/dev/ttyUSB0'
+BAUDRATE = 57600
+PROTOCOL_VERSION = 2.0
 ADDR_PRESENT_POSITION = 123  #update
 
 
@@ -61,14 +59,14 @@ sensors_visu = [0,0,0,0,0]
 
 
 # Setup
-# portHandler = PortHandler(DEVICENAME)
-# packetHandler = PacketHandler(PROTOCOL_VERSION)
-# if not portHandler.openPort():
-#     rospy.logerr("Failed to open the port")
-#     exit()
-# if not portHandler.setBaudRate(BAUDRATE):
-#     rospy.logerr("Failed to set the baud rate")
-#     exit()
+portHandler = PortHandler(DEVICENAME)
+packetHandler = PacketHandler(PROTOCOL_VERSION)
+if not portHandler.openPort():
+    rospy.logerr("Failed to open the port")
+    exit()
+if not portHandler.setBaudRate(BAUDRATE):
+    rospy.logerr("Failed to set the baud rate")
+    exit()
 
 
 # Functions
@@ -183,10 +181,9 @@ def load_ft_data():
 # the robot.
 def imu_callback(data):
     global vecGravity
-    x = data.linear_acceleration.x
-    y = -(data.linear_acceleration.y)
-    z = -(data.linear_acceleration.z)
-    vecGravity = Vector3(x,y,z)
+    # 1) subscribe to imu topic
+    # 2) extract direction of gravity from topic
+    vecGravity = Vector3(0.0, 0.0, 0.0) # mock data
 # End of: UPDATE GRAVITY VECTOR
 
 
@@ -235,7 +232,7 @@ if __name__ == "__main__":
 
     # setup sub and pub topics
     rospy.Subscriber(IMU_TOPIC, Imu, imu_callback)
-    # rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
+    rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
     stability_pub = rospy.Publisher(STABILITY_STATUS_TOPIC, Bool, queue_size=10)
 
     # loop functionality
@@ -258,4 +255,5 @@ if __name__ == "__main__":
         # sleep
         rate.sleep()
 
+    portHandler.closePort()
     # end of file
