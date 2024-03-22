@@ -168,7 +168,7 @@ def load_ft_data():
     rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
     rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
     limbsInContact = {'leftHand': False, 'rightHand': False,    # mock data
-                      'leftFoot': False, 'rightFoot': False}    # needs updating
+                      'leftFoot': True, 'rightFoot': True}    # needs updating
     return limbsInContact
 # End of: LOAD FORCE-TORQUE SENSOR DATA
 
@@ -194,7 +194,14 @@ def imu_callback(data):
 # contact points should be vectors that originate from the center of mass.
 def calc_contact_points(endPointVecs, limbsInContact):
     # ADD CODE HERE
-    contactPoints = np.array([])  # an array/list of vectors
+    # MOCK DATA : presume the contact points make a square
+    active_points = []
+    for limb, isInContact in limbsInContact.items():
+        if isInContact:
+            # If the limb is in contact, append its associated point to active_points
+            active_points.append(endPointVecs[limb])
+    contactPoints=np.array(active_points) 
+    
     return contactPoints
 # End of: CALCULATE CONTACT POINTS
 
@@ -206,7 +213,9 @@ def calc_contact_points(endPointVecs, limbsInContact):
 # considering all contact points.
 def calc_polygon(contactPoints):
     # ADD CODE HERE
-    cws = np.array([])    # List of the three contact points that make up the support poligon
+    # WIll need the kinematics package to know the orientation to extract the position of toes and heels to make the polygon. For now more mock data
+    
+    cws = np.array([])    # List of at least three contact points that make up the support poligon
     return cws
 # End of: CALCULATE POLYGON
 
