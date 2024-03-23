@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 
 # File: stability_check.py
 # Author: Logan Jones
@@ -11,14 +10,12 @@
 import rospy
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Vector3
-#from sensor_msgs.msg import ForceTorqueSensorMessageType # Toshi, update this
+from sensor_msgs.msg import ForceTorqueSensorMessageType # Toshi, update this
 from geometry_msgs.msg import Vector3
 from dynamixel_sdk import *  # Assumes Dynamixel SDK library is correctly set up and accessible
 import tf.transformations
 from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
-from geometry_msgs.msg import Point
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -26,10 +23,10 @@ import matplotlib.pyplot as plt
 IMU_TOPIC = "imu/data"
 FORCE_TORQUE_TOPIC = "" # Toshi, update this
 STABILITY_STATUS_TOPIC = "robot/stability_status"
-# DYNAMIXEL_MOTOR_IDS = [1, 2, 3, 4]  #update
-# DEVICENAME = '/dev/ttyUSB0'
-# BAUDRATE = 57600
-# PROTOCOL_VERSION = 2.0
+DYNAMIXEL_MOTOR_IDS = [1, 2, 3, 4]  #update
+DEVICENAME = '/dev/ttyUSB0'
+BAUDRATE = 57600
+PROTOCOL_VERSION = 2.0
 ADDR_PRESENT_POSITION = 123  #update
 
 
@@ -54,12 +51,7 @@ fz_ll = 0
 tx_ll = 0
 ty_ll = 0
 tz_ll = 0
-fx_rl = 0
-fy_rl = 0
-fz_rl = 0
-tx_rl = 0
-ty_rl = 0
-tz_rl = 0
+
 
 
 
@@ -67,14 +59,14 @@ sensors_visu = [0,0,0,0,0]
 
 
 # Setup
-# portHandler = PortHandler(DEVICENAME)
-# packetHandler = PacketHandler(PROTOCOL_VERSION)
-# if not portHandler.openPort():
-#     rospy.logerr("Failed to open the port")
-#     exit()
-# if not portHandler.setBaudRate(BAUDRATE):
-#     rospy.logerr("Failed to set the baud rate")
-#     exit()
+portHandler = PortHandler(DEVICENAME)
+packetHandler = PacketHandler(PROTOCOL_VERSION)
+if not portHandler.openPort():
+    rospy.logerr("Failed to open the port")
+    exit()
+if not portHandler.setBaudRate(BAUDRATE):
+    rospy.logerr("Failed to set the baud rate")
+    exit()
 
 
 # Functions
@@ -123,14 +115,14 @@ def wrench_callback_ll(msg_ll):
 # callback function for right leg sensor
 
 def wrench_callback_rl(msg_rl):
-    global fx_rl, fy_rl, fz_rl, tx_rl, ty_rl, tz_rl
+    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
 	#print("**********LEFT WRIST**********")
-    fx_rl = msg_rl.wrench.force.x
-    fy_rl = msg_rl.wrench.force.y
-    fz_rl = msg_rl.wrench.force.z
-    tx_rl = msg_rl.wrench.torque.x
-    ty_rl = msg_rl.wrench.torque.y
-    tz_rl = msg_rl.wrench.torque.z
+    fx_lwr = msg_rl.wrench.force.x
+    fy_lwr = msg_rl.wrench.force.y
+    fz_lwr = msg_rl.wrench.force.z
+    tx_lwr = msg_rl.wrench.torque.x
+    ty_lwr = msg_rl.wrench.torque.y
+    tz_lwr = msg_rl.wrench.torque.z
 	
 #****************************************************************************************
 
@@ -156,35 +148,27 @@ def load_endpoint_vectors():
 # End of: LOAD ENDPOINT VECTORS
 
 
+# LOAD FORCE-TORQUE SENSOR DATA
+# ASSIGNEE: Toshi Baswas
+# -----------------------------
+# Subscribe to the ros topic that contains values from the force-torque
+# sensors and calculate wether that limb is in contact for stability.
+def force_torque_callback(data):
+    ftData = data
 
-"""
-LOAD FORCE-TORQUE SENSOR DATA
-ASSIGNEE: Toshi Baswas
------------------------------
-Subscribe to the ros topic that contains values from the force-torque
-sensors and calculate wether that limb is in contact for stability.
-"""
 def load_ft_data():
-    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr, fx_rwr, fy_rwr, fz_rwr, tx_rwr, ty_rwr, tz_rwr, fx_ll, fy_ll, fz_ll, tx_ll, ty_ll, tz_ll, fx_rl, fy_rl, fz_rl, tx_rl, ty_rl, tz_rl
+    global ftData
 
     rospy.init_node('register')
+
+    publisher = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=10)
+
     rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
     rospy.Subscriber("/bus1/ft_sensor1/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rwr)
     rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
     rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
-    fzTotal = fz_rl +fz_ll +fz_lwr +fz_rwr
-
-    leftHand, rightHand,leftFoot, rightFoot = False
-    if (fz_rl/fzTotal >= 0.05):
-        rightFoot = True
-    if (fz_ll/fzTotal >= 0.05):
-        leftFoot = True
-    if (fz_rwr/fzTotal >= 0.05):
-        rightHand = True
-    if (fz_lwr/fzTotal >= 0.05):
-        leftHand = True
-    limbsInContact = {'leftHand': leftHand, 'rightHand': rightHand,    # mock data
-                      'leftFoot': leftFoot, 'rightFoot': rightFoot}    # needs updating
+    limbsInContact = {'leftHand': False, 'rightHand': False,    # mock data
+                      'leftFoot': True, 'rightFoot': True}    # needs updating
     return limbsInContact
 # End of: LOAD FORCE-TORQUE SENSOR DATA
 
@@ -197,10 +181,9 @@ def load_ft_data():
 # the robot.
 def imu_callback(data):
     global vecGravity
-    x = data.linear_acceleration.x
-    y = -(data.linear_acceleration.y)
-    z = -(data.linear_acceleration.z)
-    vecGravity = Vector3(x,y,z)
+    # 1) subscribe to imu topic
+    # 2) extract direction of gravity from topic
+    vecGravity = Vector3(0.0, 0.0, 0.0) # mock data
 # End of: UPDATE GRAVITY VECTOR
 
 
@@ -211,7 +194,14 @@ def imu_callback(data):
 # contact points should be vectors that originate from the center of mass.
 def calc_contact_points(endPointVecs, limbsInContact):
     # ADD CODE HERE
-    contactPoints = np.array([])  # an array/list of vectors
+    # MOCK DATA : presume the contact points make a square
+    active_points = []
+    for limb, isInContact in limbsInContact.items():
+        if isInContact:
+            # If the limb is in contact, append its associated point to active_points
+            active_points.append(endPointVecs[limb])
+    contactPoints=np.array(active_points) 
+    
     return contactPoints
 # End of: CALCULATE CONTACT POINTS
 
@@ -223,7 +213,9 @@ def calc_contact_points(endPointVecs, limbsInContact):
 # considering all contact points.
 def calc_polygon(contactPoints):
     # ADD CODE HERE
-    cws = np.array([])    # List of the three contact points that make up the support poligon
+    # WIll need the kinematics package to know the orientation to extract the position of toes and heels to make the polygon. For now more mock data
+    
+    cws = np.array([])    # List of at least three contact points that make up the support poligon
     return cws
 # End of: CALCULATE POLYGON
 
@@ -249,7 +241,7 @@ if __name__ == "__main__":
 
     # setup sub and pub topics
     rospy.Subscriber(IMU_TOPIC, Imu, imu_callback)
-    # rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
+    rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
     stability_pub = rospy.Publisher(STABILITY_STATUS_TOPIC, Bool, queue_size=10)
 
     # loop functionality
@@ -272,4 +264,5 @@ if __name__ == "__main__":
         # sleep
         rate.sleep()
 
+    portHandler.closePort()
     # end of file
