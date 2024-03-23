@@ -18,7 +18,7 @@ from dynamixel_sdk import *  # Assumes Dynamixel SDK library is correctly set up
 import tf.transformations
 from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
-
+from geometry_msgs.msg import Point
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -55,7 +55,12 @@ fz_ll = 0
 tx_ll = 0
 ty_ll = 0
 tz_ll = 0
-
+fx_rl = 0
+fy_rl = 0
+fz_rl = 0
+tx_rl = 0
+ty_rl = 0
+tz_rl = 0
 
 
 
@@ -119,14 +124,14 @@ def wrench_callback_ll(msg_ll):
 # callback function for right leg sensor
 
 def wrench_callback_rl(msg_rl):
-    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
+    global fx_rl, fy_rl, fz_rl, tx_rl, ty_rl, tz_rl
 	#print("**********LEFT WRIST**********")
-    fx_lwr = msg_rl.wrench.force.x
-    fy_lwr = msg_rl.wrench.force.y
-    fz_lwr = msg_rl.wrench.force.z
-    tx_lwr = msg_rl.wrench.torque.x
-    ty_lwr = msg_rl.wrench.torque.y
-    tz_lwr = msg_rl.wrench.torque.z
+    fx_rl = msg_rl.wrench.force.x
+    fy_rl = msg_rl.wrench.force.y
+    fz_rl = msg_rl.wrench.force.z
+    tx_rl = msg_rl.wrench.torque.x
+    ty_rl = msg_rl.wrench.torque.y
+    tz_rl = msg_rl.wrench.torque.z
 	
 #****************************************************************************************
 
@@ -161,22 +166,29 @@ ASSIGNEE: Toshi Baswas
 Subscribe to the ros topic that contains values from the force-torque
 sensors and calculate wether that limb is in contact for stability.
 """
-def force_torque_callback(data):
-    ftData = data
+
 
 def load_ft_data():
-    global ftData
+    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr, fx_rwr, fy_rwr, fz_rwr, tx_rwr, ty_rwr, tz_rwr, fx_ll, fy_ll, fz_ll, tx_ll, ty_ll, tz_ll, fx_rl, fy_rl, fz_rl, tx_rl, ty_rl, tz_rl
 
     rospy.init_node('register')
-
-    publisher = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=10)
-
     rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
     rospy.Subscriber("/bus1/ft_sensor1/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rwr)
     rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
     rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
-    limbsInContact = {'leftHand': False, 'rightHand': False,    # mock data
-                      'leftFoot': False, 'rightFoot': False}    # needs updating
+    fzTotal = fz_rl +fz_ll +fz_lwr +fz_rwr
+
+    leftHand, rightHand,leftFoot, rightFoot = False
+    if (fz_rl/fzTotal >= 0.05):
+        rightFoot = True
+    if (fz_ll/fzTotal >= 0.05):
+        leftFoot = True
+    if (fz_rwr/fzTotal >= 0.05):
+        rightHand = True
+    if (fz_lwr/fzTotal >= 0.05):
+        leftHand = True
+    limbsInContact = {'leftHand': leftHand, 'rightHand': rightHand,    # mock data
+                      'leftFoot': leftFoot, 'rightFoot': rightFoot}    # needs updating
     return limbsInContact
 # End of: LOAD FORCE-TORQUE SENSOR DATA
 
