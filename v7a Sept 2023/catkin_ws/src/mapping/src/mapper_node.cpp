@@ -16,15 +16,17 @@
 
 class OctomapMapper
 {
-
 public:
     OctomapMapper() : nh("~"), octree(0.1)
     { // 0.1mm resolution
         velodyne_sub = nh.subscribe("/velodyne_points", 10, &OctomapMapper::pointCloudCallback, this); // subscribe to velodyne
         imu_sub = nh.subscribe("/camera/imu", 1000, &OctomapMapper::imuCallback, this); // Subscribe to imu topic
-        sensorOrigin = octomap::point3d(); // Initialization of sensorOrigin
-        velocity = geometry_msgs::Vector3(); // Initialization of velocity
-        frameOrigin = octomath::Pose6D();    // Initialization of frameOrigin
+        sensorOrigin = octomap::point3d();
+        velocity = geometry_msgs::Vector3();
+        orientation = octomath::Vector3();
+        frameOrigin = octomath::Pose6D();
+        gravity_dir = octomath::Vector3();
+        first_imu_call = true;
     }
 
     ~OctomapMapper()
@@ -52,7 +54,6 @@ public:
         }
 
         // insert octomap pointcloud into octree
-
         octree.insertPointCloud(octomapCloud, sensorOrigin, frameOrigin);
         octree.updateInnerOccupancy(); // update
     }
@@ -69,25 +70,32 @@ public:
 
     void imuCallback(const sensor_msgs::Imu::ConstPtr &imu_msg)
     {
+        // Getting initial gravity direction
+        if (first_imu_call)
+        {
+            first_imu_call = false;
+            gravity_dir = octomath::Vector3(imu_msg->linear_acceleration.x, imu_msg->linear_acceleration.y, imu_msg->linear_acceleration.z);
+            gravity_dir.normalize();
+        }
 
         // Linear acceleration
         octomap::point3d toAdd(velocity.x / 200, velocity.y / 200, velocity.z / 200);
         sensorOrigin -= toAdd;
-        velocity.x += imu_msg->linear_acceleration.x / 200;
-        velocity.y += imu_msg->linear_acceleration.y / 200;
-        velocity.z += imu_msg->linear_acceleration.z / 200;
+        velocity.x += (imu_msg->linear_acceleration.x - gravity_dir.x()) / 200;
+        velocity.y += (imu_msg->linear_acceleration.z - gravity_dir.z()) / 200;
+        velocity.z += (imu_msg->linear_acceleration.y - gravity_dir.y()) / 200;
 
-        // Orientation
-        octomath::Quaternion imuOrientation(imu_msg->orientation.w, imu_msg->orientation.x, imu_msg->orientation.y, imu_msg->orientation.z);
-        octomath::Vector3 eulerOrientation = imuOrientation.toEuler();
-        eulerOrientation *= -1;
-        octomath::Quaternion reversedOrientation(eulerOrientation);
+        // Orientation and tracking gravity
+        octomath::Vector3 angularVelocity(imu_msg->angular_velocity.x / 200, imu_msg->angular_velocity.z / 200, imu_msg->angular_velocity.y / 200);
+        orientation += angularVelocity;
+        octomath::Quaternion reversedOrientation(orientation * -1);
         frameOrigin = octomath::Pose6D(sensorOrigin, reversedOrientation);
+
+        gravity_dir -= angularVelocity;
     }
 
     void spin()
     {
-
         ros::spin();
     }
 
@@ -102,10 +110,17 @@ private:
     geometry_msgs::Vector3 velocity; // velocity in x, y, and z axis.
 
     // For orientation
-    octomath::Pose6D frameOrigin;
+    octomath::Vector3 orientation; // Euler angles of orientation (in radians)
+    octomath::Pose6D frameOrigin; // To be passed into octomap
+
+    // Tracking gravity
+    octomath::Vector3 gravity_dir;
+    bool first_imu_call;    // This is a flag meant to keep track of the first imu call-back.
+                            // The purpose of this is to get the initial direction of gravity, based on the linear acceleration of the imu
 };
 
 int main(int argc, char **argv)
+
 {
     ros::init(argc, argv, "octomap_mapper");
     OctomapMapper mapper;
