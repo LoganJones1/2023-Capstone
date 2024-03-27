@@ -65,7 +65,7 @@ public:
     The imu msg does not have data for direct velocity, only linear acceleration.
     This linear acceleration will be added to the velocity data member.
     At the same time, the velocity will be added.
-    The imu callback is called 200 times per second (which is the fps of the camera's gyroscope)
+    The imu callback is set to be called 200 times per second (which is the fps of the gyro sensor)
     */
 
     void imuCallback(const sensor_msgs::Imu::ConstPtr &imu_msg)
@@ -81,17 +81,59 @@ public:
         // Linear acceleration
         octomap::point3d toAdd(velocity.x / 200, velocity.y / 200, velocity.z / 200);
         sensorOrigin -= toAdd;
-        velocity.x += (imu_msg->linear_acceleration.x - gravity_dir.x()) / 200;
-        velocity.y += (imu_msg->linear_acceleration.z - gravity_dir.z()) / 200;
-        velocity.z += (imu_msg->linear_acceleration.y - gravity_dir.y()) / 200;
+        double linearAccelerationTolerance = 0.05;
+        if (toAdd.x() > linearAccelerationTolerance || toAdd.x() < -linearAccelerationTolerance) {
+            //ROS_INFO("\nADDING X FOR LA");
+            velocity.x += (imu_msg->linear_acceleration.x - gravity_dir.x() * 9.81) / 200;
+        }
+        if (toAdd.z() > linearAccelerationTolerance || toAdd.z() < -linearAccelerationTolerance) {
+            //ROS_INFO("\nADDING Y FOR LA");
+            velocity.y += (imu_msg->linear_acceleration.z - gravity_dir.z() * 9.81) / 200;
+        }
+        if (toAdd.y() > linearAccelerationTolerance || toAdd.y() < -linearAccelerationTolerance) {
+            //ROS_INFO("\nADDING Z FOR LA");
+            velocity.z += (imu_msg->linear_acceleration.y - gravity_dir.y() * 9.81) / 200;
+        }
+        /*
+        ROS_INFO("\nLinear Accelereation: (%f, %f, %f)\ngravity: (%f, %f, %f)\nvelocity:(%f, %f, %f)",
+            toAdd.x(), toAdd.z(), toAdd.y(),
+            gravity_dir.x(), gravity_dir.z(), gravity_dir.y(),
+            velocity.x, velocity.y, velocity.z);
+        */
 
         // Orientation and tracking gravity
         octomath::Vector3 angularVelocity(imu_msg->angular_velocity.x / 200, imu_msg->angular_velocity.z / 200, imu_msg->angular_velocity.y / 200);
-        orientation += angularVelocity;
-        octomath::Quaternion reversedOrientation(orientation * -1);
-        frameOrigin = octomath::Pose6D(sensorOrigin, reversedOrientation);
+        //ROS_INFO("\nAngular Velocity: (%f, %f, %f)", angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
+        octomath::Vector3 rotation(0, 0, 0);
+        bool significantChange = false;
+        double angularVelocityTolerance = 0.0004;
+        if (angularVelocity.x() > angularVelocityTolerance || angularVelocity.x() < -angularVelocityTolerance) {
+            //ROS_INFO("\nADDING X FOR AV");
+            orientation.x() += angularVelocity.x();
+            rotation.x() = angularVelocity.x();
+            significantChange = true;
+        }
+        if (angularVelocity.y() > angularVelocityTolerance || angularVelocity.y() < -angularVelocityTolerance) {
+            //ROS_INFO("\nADDING Y FOR AV");
+            orientation.y() += angularVelocity.y();
+            rotation.y() = angularVelocity.y();
+            significantChange = true;
+        }
+        if (angularVelocity.z() > angularVelocityTolerance || angularVelocity.z() < -angularVelocityTolerance) {
+            //ROS_INFO("\nADDING Z FOR AV");
+            orientation.z() += angularVelocity.z();
+            rotation.z() = angularVelocity.z();
+            significantChange = true;
+        }
+        //ROS_INFO("Orientation: (%f, %f, %f)",
+            //orientation.x(), orientation.y(), orientation.z());
 
-        gravity_dir -= angularVelocity;
+        if (significantChange) {
+            octomath::Quaternion reversedOrientation(orientation * -1);
+            frameOrigin = octomath::Pose6D(sensorOrigin, reversedOrientation);
+
+            gravity_dir.rotate_IP(angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
+        }
     }
 
     void spin()
