@@ -20,6 +20,7 @@ from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
 import numpy as np
 import matplotlib.pyplot as plt
+from geometry_msgs.msg import PoseStamped
 
 # Constants
 IMU_TOPIC = "imu/data"
@@ -30,7 +31,10 @@ STABILITY_STATUS_TOPIC = "robot/stability_status"
 # BAUDRATE = 57600
 # PROTOCOL_VERSION = 2.0
 ADDR_PRESENT_POSITION = 123  #update
-
+KIN_LARM_TOPIC = "FKinematics_LARM"
+KIN_LLEG_TOPIC = "FKinematics_LLEG"
+KIN_RARM_TOPIC = "FKinematics_RARM"
+KIN_RLEG_TOPIC = "FKinematics_RLEG"
 
 # Global Variables
 vecGravity = Vector3()
@@ -53,11 +57,12 @@ fz_ll = 0
 tx_ll = 0
 ty_ll = 0
 tz_ll = 0
-
-
-
-
 sensors_visu = [0,0,0,0,0]
+
+dataLARM = {}
+dataLLEG = {}
+dataRARM = {}
+dataRLEG = {}
 
 
 # Setup
@@ -130,22 +135,48 @@ def wrench_callback_rl(msg_rl):
 
 
 
-# LOAD ENDPOINT VECTORS (Incomplete)
+# LOAD ENDPOINT VECTORS
 # ASSIGNEE: Logan Jones
 # ---------------------
 # Subscribe to the ros topic that contains vectors from the center of mass
 # to the end of each limb (Left hand and foot, right hand and foot).
+def larm_callback(data):
+    dataLARM = data
+
+def llrg_callback(data):
+    dataLLEG = data
+
+def rarm_callback(data):
+    dataRARM = data
+
+def rleg_callback(data):
+    dataRLEG = data
+
+def processXY(num):
+    return num / 100.00 # convert cm to m
+
+def processZ(num):
+    return (num - 120.00) / 100.00  # translate to pelvis frame of reference
+                                    # and conver cm to m
+
 def load_endpoint_vectors():
-    # NEED TO BE DONE WHEN KINIMATICS ARE COMPLETED:
-    # 1) Subscribe to the kinimatics topic to recieve 4 vectors that represent the
-    # locations of the end of each limb and originate form the robot's center of
-    # mass.
-    # 2) Load those vectors into the following dictionary in place of the existing
-    # mock data.
-    endPointVecs = {'leftHand': Vector3(0.0, 2.0, 1.0),
-                    'rightHand': Vector3(-1.0,-2.0, 1.0),
-                    'leftFoot': Vector3(1.5, 0.5,-3.0),
-                    'rightFoot': Vector3(-0.5,-1.0,-3.0)}
+    la_vec = Vector3(processXY(dataLARM.pose.position.x),
+                     processXY(dataLARM.pose.position.y),
+                      processZ(dataLARM.pose.position.z))
+    ll_vec = Vector3(processXY(dataLLEG.pose.position.x),
+                     processXY(dataLLEG.pose.position.y),
+                      processZ(dataLLEG.pose.position.z))
+    ra_vec = Vector3(processXY(dataRARM.pose.position.x),
+                     processXY(dataRARM.pose.position.y),
+                      processZ(dataRARM.pose.position.z))
+    rl_vec = Vector3(processXY(dataRLEG.pose.position.x),
+                     processXY(dataRLEG.pose.position.y),
+                      processZ(dataRLEG.pose.position.z))
+
+    endPointVecs = {'leftHand': la_vec,
+                    'rightHand': ra_vec,
+                    'leftFoot': ll_vec,
+                    'rightFoot': rl_vec}
     return endPointVecs
 # End of: LOAD ENDPOINT VECTORS
 
@@ -235,6 +266,10 @@ if __name__ == "__main__":
 
     # setup sub and pub topics
     rospy.Subscriber(IMU_TOPIC, Imu, imu_callback)
+    rospy.Subscriber(KIN_LARM_TOPIC, PoseStamped, larm_callback)
+    rospy.Subscriber(KIN_LLEG_TOPIC, PoseStamped, llrg_callback)
+    rospy.Subscriber(KIN_RARM_TOPIC, PoseStamped, rarm_callback)
+    rospy.Subscriber(KIN_RLEG_TOPIC, PoseStamped, rleg_callback)
     # rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
     stability_pub = rospy.Publisher(STABILITY_STATUS_TOPIC, Bool, queue_size=10)
 
