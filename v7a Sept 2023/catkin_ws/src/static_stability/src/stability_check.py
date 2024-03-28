@@ -5,7 +5,7 @@
 # Author: Logan Jones
 # Date: March 13, 2024
 # Description: To check if the robot is stable in a static possition and send 
-# a message on ros wether the robot is stable or not.
+# a message on ros whether the robot is stable or not.
 
 # Imports
 import rospy
@@ -215,8 +215,8 @@ def load_ft_data():
 def imu_callback(data):
     global vecGravity
     x = data.linear_acceleration.x
-    y = -(data.linear_acceleration.y)
-    z = -(data.linear_acceleration.z)
+    y = -(data.linear_acceleration.y) # rotated 180 about the x axis
+    z = -(data.linear_acceleration.z) # rotated 180 about the x axis
     vecGravity = Vector3(x,y,z)
 # End of: UPDATE GRAVITY VECTOR
 
