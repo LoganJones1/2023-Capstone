@@ -2,7 +2,7 @@
 
 
 # File: stability_check.py
-# Author: Logan Jones
+# Author: Logan Jones, Toshi Biswas
 # Date: March 13, 2024
 # Description: To check if the robot is stable in a static possition and send 
 # a message on ros wether the robot is stable or not.
