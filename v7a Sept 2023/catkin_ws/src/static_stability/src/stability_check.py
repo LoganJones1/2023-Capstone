@@ -192,9 +192,7 @@ sensors and do the idle readings that will give us the gaussian distribution we 
 
 def startupCalc():
     global flwrLower, flwrUpper, tlwrLower, tlwrUpper, frwrLower, frwrUpper, trwrLower, trwrUpper, fllLower, fllUpper, tllLower, tllUpper, frlLower, frlUpper, trlLower, trlUpper
-    z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)  # for a normal distribution
-    rospy.init_node('register')
-    
+    z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)  # for a normal distribution    
     ftRecordings = np.zeros((reads,2),dtype=float)
     for i in reads:
         rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
@@ -233,7 +231,6 @@ Subscribe to the ros topic that contains values from the force-torque
 sensors and calculate wether that limb is in contact for stability.
 """
 def load_ft_data():
-    rospy.init_node('register')
     is_in_contact = [False,False,False,False]
     rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
     if(not(ftData[0] >= flwrLower and ftData[0]<=flwrUpper and ftData[1] >= tlwrLower and ftData[1]<=tlwrUpper)):
