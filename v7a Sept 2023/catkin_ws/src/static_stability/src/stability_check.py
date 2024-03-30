@@ -227,8 +227,13 @@ def imu_callback(data):
 # Calculate the points of the robot that are in contact for stability. The 
 # contact points should be vectors that originate from the center of mass.
 def calc_contact_points(endPointVecs, limbsInContact):
-    # ADD CODE HERE
-    contactPoints = np.array([])  # an array/list of vectors
+       # MOCK DATA : presume the contact points make a square
+    active_points = []
+    for limb, isInContact in limbsInContact.items():
+        if isInContact:
+            # If the limb is in contact, append its associated point to active_points
+            active_points.append(endPointVecs[limb])
+    contactPoints=np.array(active_points) 
     return contactPoints
 # End of: CALCULATE CONTACT POINTS
 
@@ -239,9 +244,22 @@ def calc_contact_points(endPointVecs, limbsInContact):
 # Calculate the stabilty poligon that is the largest possible triangle from
 # considering all contact points.
 def calc_polygon(contactPoints):
-    # ADD CODE HERE
-    cws = np.array([])    # List of the three contact points that make up the support poligon
-    return cws
+    if len(contactPoints) > 2:
+        # If yes, return the contactPoints as they are
+        return contactPoints
+    if len(contactPoints) == 2:
+        # Create a new point by adding 0.07 to the x value of the first point
+        new_first_point = Vector3(contactPoints[0].x + 0.07, contactPoints[0].y, contactPoints[0].z)
+        # Create another new point by subtracting 0.07 from the x value of the first point
+        new_second_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y, contactPoints[0].z)
+
+        # Update the list: new_first_point becomes the first, new_second_point becomes the second,
+        # and the initial second element is now the third
+        contactPoints = [new_first_point, new_second_point] + contactPoints[1:]
+        cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
+        return cws
+    
+    
 # End of: CALCULATE POLYGON
 
 
