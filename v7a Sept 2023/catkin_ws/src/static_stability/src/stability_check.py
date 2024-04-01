@@ -352,11 +352,12 @@ def calc_polygon(contactPoints):
 # Calculate whether the center of mass (gravity vector) itersects with the
 # support polygon.
 def is_stable(contact_points):
-    # extract x, y coordinates
     
+    #check if we have a valid polygon
     if len(contact_points) < 3:
         raise ValueError("Must have at least 3 contact points in order to calculate stability")
 
+    #extract x, y coordinates
     polygon_points = contact_points[:, :2]
     center_of_mass = np.array([vecGravity.x, vecGravity.y])
 
@@ -368,7 +369,9 @@ def is_stable(contact_points):
     return inside_polygon
 # End of: CALCULATE STABILITY
 
-# used for debugging
+#used for debugging
+#visualizes the original contact points polygon in 3D
+#and in 2D, once it's been projected to a 2D space
 def visualize_polygon(contact_points):
     # extract x, y coordinates
     polygon_points = contact_points[:, :2]
