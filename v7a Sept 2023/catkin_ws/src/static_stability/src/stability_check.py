@@ -19,7 +19,9 @@ import tf.transformations
 from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
 import numpy as np
+from matplotlib.path import Path
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from geometry_msgs.msg import PoseStamped
 
 # Constants
@@ -275,13 +277,53 @@ def calc_polygon(contactPoints):
 # ----------------------
 # Calculate whether the center of mass (gravity vector) itersects with the
 # support polygon.
-def is_stable(cws):
-    # should be replaced with something more thorough
-    polygon_points = np.array(cws)[:, :2]  # extract x y coordinates
-    gravity_point = vecGravity[:2]  # Ignoring Z coordinate
-    stable = plt.path.Path(polygon_points).contains_point(gravity_point)    # boolean
-    return stable
+def is_stable(contact_points):
+    # extract x, y coordinates
+    
+    if len(contact_points) < 3:
+        raise ValueError("Must have at least 3 contact points in order to calculate stability")
+
+    polygon_points = contact_points[:, :2]
+    center_of_mass = np.array([vecGravity.x, vecGravity.y])
+
+    #create Path from polygon coordinates
+    path = Path(polygon_points)
+
+    #check if center of mass vector is inside the polygon area
+    inside_polygon = path.contains_point(center_of_mass)
+    return inside_polygon
 # End of: CALCULATE STABILITY
+
+# used for debugging
+def visualize_polygon(contact_points):
+    # extract x, y coordinates
+    polygon_points = contact_points[:, :2]
+    gravity_point = np.array([vecGravity.x, vecGravity.y])
+
+    # create a subplot for the 2D plot
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # plot the 2D polygon
+    ax1.fill(*zip(*polygon_points), alpha=0.3)  # Plot the support polygon
+    ax1.scatter(*gravity_point, color='red')  # Plot the center of gravity
+    ax1.set_xlabel('X axis')
+    ax1.set_ylabel('Y axis')
+    ax1.set_title('2D Stability Plot')
+    ax1.grid(True)
+    
+    # plot the 3D polygon
+    ax2 = fig.add_subplot(122, projection='3d')
+    poly3d = [[contact_points[j, :] for j in range(len(contact_points))]]
+    ax2.add_collection3d(Poly3DCollection(poly3d, facecolors='cyan', linewidths=1, edgecolors='r', alpha=.25))
+    ax2.scatter(vecGravity.x, vecGravity.y, vecGravity.z, color='red')
+    ax2.set_xlabel('X axis')
+    ax2.set_ylabel('Y axis')
+    ax2.set_zlabel('Z axis')
+    ax2.set_title('3D Stability Plot')
+    
+    # visualize plots
+    plt.tight_layout()
+    plt.show()
 
 
 # Main code
