@@ -5,7 +5,7 @@
 # Author: Logan Jones, Toshi Biswas
 # Date: March 13, 2024
 # Description: To check if the robot is stable in a static possition and send 
-# a message on ros wether the robot is stable or not.
+# a message on ros whether the robot is stable or not.
 
 # Imports
 import scipy.stats as stats
@@ -21,7 +21,10 @@ from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
 from geometry_msgs.msg import Point
 import numpy as np
+from matplotlib.path import Path
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from geometry_msgs.msg import PoseStamped
 import math
 
 # Constants
@@ -33,14 +36,13 @@ STABILITY_STATUS_TOPIC = "robot/stability_status"
 # BAUDRATE = 57600
 # PROTOCOL_VERSION = 2.0
 ADDR_PRESENT_POSITION = 123  #update
-
+KIN_LARM_TOPIC = "FKinematics_LARM"
+KIN_LLEG_TOPIC = "FKinematics_LLEG"
+KIN_RARM_TOPIC = "FKinematics_RARM"
+KIN_RLEG_TOPIC = "FKinematics_RLEG"
 
 # Global Variables
 vecGravity = Vector3()
-reads = 100000                         #number of times our code will read the ft data 
-gaussianCreated = False
-location = 0
-ftData = np.zeros((2),dtype = float)
 sensors_visu = [0,0,0,0,0]
 """ 
 The variable confidence_level considers the level of confidence there is for intervals. 
@@ -67,6 +69,11 @@ frlUpper = 0.0
 frlLower = 0.0
 trlUpper = 0.0
 trlLower = 0.0
+
+dataLARM = {}
+dataLLEG = {}
+dataRARM = {}
+dataRLEG = {}
 
 
 # Setup
@@ -148,22 +155,48 @@ def wrench_callback_rl(msg_rl):
 
 
 
-# LOAD ENDPOINT VECTORS (Incomplete)
+# LOAD ENDPOINT VECTORS
 # ASSIGNEE: Logan Jones
 # ---------------------
 # Subscribe to the ros topic that contains vectors from the center of mass
 # to the end of each limb (Left hand and foot, right hand and foot).
+def larm_callback(data):
+    dataLARM = data
+
+def llrg_callback(data):
+    dataLLEG = data
+
+def rarm_callback(data):
+    dataRARM = data
+
+def rleg_callback(data):
+    dataRLEG = data
+
+def processXY(num):
+    return num / 100.00 # convert cm to m
+
+def processZ(num):
+    return (num - 120.00) / 100.00  # translate to pelvis frame of reference
+                                    # and conver cm to m
+
 def load_endpoint_vectors():
-    # NEED TO BE DONE WHEN KINIMATICS ARE COMPLETED:
-    # 1) Subscribe to the kinimatics topic to recieve 4 vectors that represent the
-    # locations of the end of each limb and originate form the robot's center of
-    # mass.
-    # 2) Load those vectors into the following dictionary in place of the existing
-    # mock data.
-    endPointVecs = {'leftHand': Vector3(0.0, 2.0, 1.0),
-                    'rightHand': Vector3(-1.0,-2.0, 1.0),
-                    'leftFoot': Vector3(1.5, 0.5,-3.0),
-                    'rightFoot': Vector3(-0.5,-1.0,-3.0)}
+    la_vec = Vector3(processXY(dataLARM.pose.position.x),
+                     processXY(dataLARM.pose.position.y),
+                      processZ(dataLARM.pose.position.z))
+    ll_vec = Vector3(processXY(dataLLEG.pose.position.x),
+                     processXY(dataLLEG.pose.position.y),
+                      processZ(dataLLEG.pose.position.z))
+    ra_vec = Vector3(processXY(dataRARM.pose.position.x),
+                     processXY(dataRARM.pose.position.y),
+                      processZ(dataRARM.pose.position.z))
+    rl_vec = Vector3(processXY(dataRLEG.pose.position.x),
+                     processXY(dataRLEG.pose.position.y),
+                      processZ(dataRLEG.pose.position.z))
+
+    endPointVecs = {'leftHand': la_vec,
+                    'rightHand': ra_vec,
+                    'leftFoot': ll_vec,
+                    'rightFoot': rl_vec}
     return endPointVecs
 # End of: LOAD ENDPOINT VECTORS
 """
@@ -257,8 +290,8 @@ def load_ft_data():
 def imu_callback(data):
     global vecGravity
     x = data.linear_acceleration.x
-    y = -(data.linear_acceleration.y)
-    z = -(data.linear_acceleration.z)
+    y = -(data.linear_acceleration.y) # rotated 180 about the x axis
+    z = -(data.linear_acceleration.z) # rotated 180 about the x axis
     vecGravity = Vector3(x,y,z)
 # End of: UPDATE GRAVITY VECTOR
 
@@ -269,8 +302,13 @@ def imu_callback(data):
 # Calculate the points of the robot that are in contact for stability. The 
 # contact points should be vectors that originate from the center of mass.
 def calc_contact_points(endPointVecs, limbsInContact):
-    # ADD CODE HERE
-    contactPoints = np.array([])  # an array/list of vectors
+       # MOCK DATA : presume the contact points make a square
+    active_points = []
+    for limb, isInContact in limbsInContact.items():
+        if isInContact:
+            # If the limb is in contact, append its associated point to active_points
+            active_points.append(endPointVecs[limb])
+    contactPoints=np.array(active_points) 
     return contactPoints
 # End of: CALCULATE CONTACT POINTS
 
@@ -281,9 +319,22 @@ def calc_contact_points(endPointVecs, limbsInContact):
 # Calculate the stabilty poligon that is the largest possible triangle from
 # considering all contact points.
 def calc_polygon(contactPoints):
-    # ADD CODE HERE
-    cws = np.array([])    # List of the three contact points that make up the support poligon
-    return cws
+    if len(contactPoints) > 2:
+        # If yes, return the contactPoints as they are
+        return contactPoints
+    if len(contactPoints) == 2:
+        # Create a new point by adding 0.07 to the x value of the first point
+        new_first_point = Vector3(contactPoints[0].x + 0.07, contactPoints[0].y, contactPoints[0].z)
+        # Create another new point by subtracting 0.07 from the x value of the first point
+        new_second_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y, contactPoints[0].z)
+
+        # Update the list: new_first_point becomes the first, new_second_point becomes the second,
+        # and the initial second element is now the third
+        contactPoints = [new_first_point, new_second_point] + contactPoints[1:]
+        cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
+        return cws
+    
+    
 # End of: CALCULATE POLYGON
 
 
@@ -292,13 +343,53 @@ def calc_polygon(contactPoints):
 # ----------------------
 # Calculate whether the center of mass (gravity vector) itersects with the
 # support polygon.
-def is_stable(cws):
-    # should be replaced with something more thorough
-    polygon_points = np.array(cws)[:, :2]  # extract x y coordinates
-    gravity_point = vecGravity[:2]  # Ignoring Z coordinate
-    stable = plt.path.Path(polygon_points).contains_point(gravity_point)    # boolean
-    return stable
+def is_stable(contact_points):
+    # extract x, y coordinates
+    
+    if len(contact_points) < 3:
+        raise ValueError("Must have at least 3 contact points in order to calculate stability")
+
+    polygon_points = contact_points[:, :2]
+    center_of_mass = np.array([vecGravity.x, vecGravity.y])
+
+    #create Path from polygon coordinates
+    path = Path(polygon_points)
+
+    #check if center of mass vector is inside the polygon area
+    inside_polygon = path.contains_point(center_of_mass)
+    return inside_polygon
 # End of: CALCULATE STABILITY
+
+# used for debugging
+def visualize_polygon(contact_points):
+    # extract x, y coordinates
+    polygon_points = contact_points[:, :2]
+    gravity_point = np.array([vecGravity.x, vecGravity.y])
+
+    # create a subplot for the 2D plot
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # plot the 2D polygon
+    ax1.fill(*zip(*polygon_points), alpha=0.3)  # Plot the support polygon
+    ax1.scatter(*gravity_point, color='red')  # Plot the center of gravity
+    ax1.set_xlabel('X axis')
+    ax1.set_ylabel('Y axis')
+    ax1.set_title('2D Stability Plot')
+    ax1.grid(True)
+    
+    # plot the 3D polygon
+    ax2 = fig.add_subplot(122, projection='3d')
+    poly3d = [[contact_points[j, :] for j in range(len(contact_points))]]
+    ax2.add_collection3d(Poly3DCollection(poly3d, facecolors='cyan', linewidths=1, edgecolors='r', alpha=.25))
+    ax2.scatter(vecGravity.x, vecGravity.y, vecGravity.z, color='red')
+    ax2.set_xlabel('X axis')
+    ax2.set_ylabel('Y axis')
+    ax2.set_zlabel('Z axis')
+    ax2.set_title('3D Stability Plot')
+    
+    # visualize plots
+    plt.tight_layout()
+    plt.show()
 
 
 # Main code
@@ -308,6 +399,10 @@ if __name__ == "__main__":
 
     # setup sub and pub topics
     rospy.Subscriber(IMU_TOPIC, Imu, imu_callback)
+    rospy.Subscriber(KIN_LARM_TOPIC, PoseStamped, larm_callback)
+    rospy.Subscriber(KIN_LLEG_TOPIC, PoseStamped, llrg_callback)
+    rospy.Subscriber(KIN_RARM_TOPIC, PoseStamped, rarm_callback)
+    rospy.Subscriber(KIN_RLEG_TOPIC, PoseStamped, rleg_callback)
     # rospy.Subscriber(FORCE_TORQUE_TOPIC, ForceTorqueSensorMessageType, force_torque_callback)
     stability_pub = rospy.Publisher(STABILITY_STATUS_TOPIC, Bool, queue_size=10)
 
