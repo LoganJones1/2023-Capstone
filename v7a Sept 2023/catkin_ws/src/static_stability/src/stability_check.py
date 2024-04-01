@@ -2,12 +2,13 @@
 
 
 # File: stability_check.py
-# Author: Logan Jones
+# Author: Logan Jones, Toshi Biswas
 # Date: March 13, 2024
 # Description: To check if the robot is stable in a static possition and send 
 # a message on ros whether the robot is stable or not.
 
 # Imports
+import scipy.stats as stats
 import rospy
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Imu
@@ -18,11 +19,13 @@ from dynamixel_sdk import *  # Assumes Dynamixel SDK library is correctly set up
 import tf.transformations
 from dynamixel_sdk import PortHandler, PacketHandler
 from geometry_msgs.msg import WrenchStamped
+from geometry_msgs.msg import Point
 import numpy as np
 from matplotlib.path import Path
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from geometry_msgs.msg import PoseStamped
+import math
 
 # Constants
 IMU_TOPIC = "imu/data"
@@ -40,26 +43,32 @@ KIN_RLEG_TOPIC = "FKinematics_RLEG"
 
 # Global Variables
 vecGravity = Vector3()
-ftData = {}
-fx_lwr = 0
-fy_lwr = 0
-fz_lwr = 0
-tx_lwr = 0
-ty_lwr = 0
-tz_lwr = 0
-fx_rwr = 0
-fy_rwr = 0
-fz_rwr = 0
-tx_rwr = 0
-ty_rwr = 0
-tz_rwr = 0
-fx_ll = 0
-fy_ll = 0
-fz_ll = 0
-tx_ll = 0
-ty_ll = 0
-tz_ll = 0
 sensors_visu = [0,0,0,0,0]
+""" 
+The variable confidence_level considers the level of confidence there is for intervals. 
+this needs to be between 0 and 1. the closer to 0, the lower the bounds will be
+the closer to 1, the bigger the bounds will be. adjust the confidence level accordingly
+"""
+confidence_level = 0.95                
+flwrUpper = 0.0
+flwrLower = 0.0
+tlwrUpper = 0.0
+tlwrLower = 0.0
+
+frwrUpper = 0.0
+frwrLower = 0.0
+trwrUpper = 0.0
+trwrLower = 0.0
+
+fllUpper = 0.0
+fllLower = 0.0
+tllUpper = 0.0
+tllLower = 0.0
+
+frlUpper = 0.0
+frlLower = 0.0
+trlUpper = 0.0
+trlLower = 0.0
 
 dataLARM = {}
 dataLLEG = {}
@@ -83,55 +92,64 @@ dataRLEG = {}
 #callback for force readings published by left wrist sensor
 
 def wrench_callback_lwr(msg_lwr):
-    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
 	#print("**********LEFT WRIST**********")
-    fx_lwr = msg_lwr.wrench.force.x
-    fy_lwr = msg_lwr.wrench.force.y
-    fz_lwr = msg_lwr.wrench.force.z
-    tx_lwr = msg_lwr.wrench.torque.x
-    ty_lwr = msg_lwr.wrench.torque.y
-    tz_lwr = msg_lwr.wrench.torque.z
-
+    global ftData
+    fx = msg_lwr.wrench.force.x
+    fy = msg_lwr.wrench.force.y
+    fz = msg_lwr.wrench.force.z
+    tx = msg_lwr.wrench.torque.x
+    ty = msg_lwr.wrench.torque.y
+    tz = msg_lwr.wrench.torque.z
+    ftData[0] = math.sqrt(fx*fx + fy*fy + fz*fz)
+    ftData[1] = math.sqrt(tx*tx + ty*ty + tz*tz)
 #****************************************************************************************
 
 	
 #callback for force readings published by right wrrist sensor
 
 def wrench_callback_rwr(msg_rwr):
-    global fx_rwr, fy_rwr, fz_rwr, tx_rwr, ty_rwr, tz_rwr
-    fx_rwr = msg_rwr.wrench.force.x
-    fy_rwr = msg_rwr.wrench.force.y
-    fz_rwr = msg_rwr.wrench.force.z
-    tx_rwr = msg_rwr.wrench.torque.x
-    ty_rwr = msg_rwr.wrench.torque.y
-    tz_rwr = msg_rwr.wrench.torque.z
+    global ftData
+    fx = msg_rwr.wrench.force.x
+    fy = msg_rwr.wrench.force.y
+    fz = msg_rwr.wrench.force.z
+    tx = msg_rwr.wrench.torque.x
+    ty = msg_rwr.wrench.torque.y
+    tz = msg_rwr.wrench.torque.z
+    ftData[0] = math.sqrt(fx*fx + fy*fy + fz*fz)
+    ftData[1] = math.sqrt(tx*tx + ty*ty + tz*tz)
 
 #*****************************************************************************************************
 
 #callback function for readings published by left leg sensor
 
 def wrench_callback_ll(msg_ll):
-    global fx_ll, fy_ll, fz_ll, tx_ll, ty_ll, tz_ll
-    fx_ll = msg_ll.wrench.force.x
-    fy_ll = msg_ll.wrench.force.y
-    fz_ll = msg_ll.wrench.force.z
-    tx_ll = msg_ll.wrench.torque.x
-    ty_ll = msg_ll.wrench.torque.y
-    tz_ll = msg_ll.wrench.torque.z
+    global ftData
+
+    fx = msg_ll.wrench.force.x
+    fy = msg_ll.wrench.force.y
+    fz = msg_ll.wrench.force.z
+    tx = msg_ll.wrench.torque.x
+    ty = msg_ll.wrench.torque.y
+    tz = msg_ll.wrench.torque.z
+    ftData[0] = math.sqrt(fx*fx + fy*fy + fz*fz)
+    ftData[1] = math.sqrt(tx*tx + ty*ty + tz*tz)
 
 #***************************************************************************************
 
 # callback function for right leg sensor
 
 def wrench_callback_rl(msg_rl):
-    global fx_lwr, fy_lwr, fz_lwr, tx_lwr, ty_lwr, tz_lwr
+    global ftData
 	#print("**********LEFT WRIST**********")
-    fx_lwr = msg_rl.wrench.force.x
-    fy_lwr = msg_rl.wrench.force.y
-    fz_lwr = msg_rl.wrench.force.z
-    tx_lwr = msg_rl.wrench.torque.x
-    ty_lwr = msg_rl.wrench.torque.y
-    tz_lwr = msg_rl.wrench.torque.z
+    fx = msg_rl.wrench.force.x
+    fy = msg_rl.wrench.force.y
+    fz = msg_rl.wrench.force.z
+    tx = msg_rl.wrench.torque.x
+    ty = msg_rl.wrench.torque.y
+    tz = msg_rl.wrench.torque.z
+    ftData[0] = math.sqrt(fx*fx + fy*fy + fz*fz)
+    ftData[1] = math.sqrt(tx*tx + ty*ty + tz*tz)
+
 	
 #****************************************************************************************
 
@@ -181,30 +199,85 @@ def load_endpoint_vectors():
                     'rightFoot': rl_vec}
     return endPointVecs
 # End of: LOAD ENDPOINT VECTORS
+"""
+Confidence interval
+ASSIGNEE: Toshi Baswas
+-----------------------------
+gives us the upper and lower bounds of a distribution when we get 
+"""
+def confidence_interval(mean, std_dev, sample_size, z_score):
+    # Calculate the margin of error
+    margin_of_error = z_score * (std_dev / np.sqrt(sample_size))
+    
+    # Calculate the lower and upper bounds
+    lower_bound = mean - margin_of_error
+    upper_bound = mean + margin_of_error
+    
+    return lower_bound, upper_bound
+"""
+START UP CALC
+ASSIGNEE: Toshi Baswas
+-----------------------------
+Subscribe to the ros topic that contains values from the force-torque
+sensors and do the idle readings that will give us the gaussian distribution we need
+"""
 
 
-# LOAD FORCE-TORQUE SENSOR DATA
-# ASSIGNEE: Toshi Baswas
-# -----------------------------
-# Subscribe to the ros topic that contains values from the force-torque
-# sensors and calculate wether that limb is in contact for stability.
-def force_torque_callback(data):
-    ftData = data
+def startupCalc():
+    global flwrLower, flwrUpper, tlwrLower, tlwrUpper, frwrLower, frwrUpper, trwrLower, trwrUpper, fllLower, fllUpper, tllLower, tllUpper, frlLower, frlUpper, trlLower, trlUpper
+    z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)  # for a normal distribution    
+    ftRecordings = np.zeros((reads,2),dtype=float)
+    for i in reads:
+        rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
+        ftRecordings[i,0] = ftData[0]
+        ftRecordings[i,1] = ftData[1]
+    flwrLower, flwrUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[0], np.std(ftRecordings,axis = 0)[0], reads, z_score)
+    tlwrLower, tlwrUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[1], np.std(ftRecordings,axis = 0)[1], reads, z_score)
+    
+    for i in reads:
+        rospy.Subscriber("/bus1/ft_sensor1/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rwr)
+        ftRecordings[i,0] = ftData[0]
+        ftRecordings[i,1] = ftData[1]
+    frwrLower, frwrUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[0], np.std(ftRecordings,axis = 0)[0], reads, z_score)
+    trwrLower, trwrUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[1], np.std(ftRecordings,axis = 0)[1], reads, z_score)
 
+    for i in reads:
+        rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
+        ftRecordings[i,0] = ftData[0]
+        ftRecordings[i,1] = ftData[1]
+    fllLower, fllUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[0], np.std(ftRecordings,axis = 0)[0], reads, z_score)
+    tllLower, tllUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[1], np.std(ftRecordings,axis = 0)[1], reads, z_score)
+
+    for i in reads:
+        rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
+        ftRecordings[i,0] = ftData[0]
+        ftRecordings[i,1] = ftData[1]
+    frlLower, frlUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[0], np.std(ftRecordings,axis = 0)[0], reads, z_score)
+    trlLower, trlUpper = confidence_interval(np.mean(ftRecordings,axis = 0)[1], np.std(ftRecordings,axis = 0)[1], reads, z_score)
+
+
+"""
+LOAD FORCE-TORQUE SENSOR DATA
+ASSIGNEE: Toshi Baswas
+-----------------------------
+Subscribe to the ros topic that contains values from the force-torque
+sensors and calculate wether that limb is in contact for stability.
+"""
 def load_ft_data():
-    global ftData
-
-    rospy.init_node('register')
-
-    publisher = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=10)
-
+    is_in_contact = [False,False,False,False]
     rospy.Subscriber("/bus0/ft_sensor0/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_lwr)
+    if(not(ftData[0] >= flwrLower and ftData[0]<=flwrUpper and ftData[1] >= tlwrLower and ftData[1]<=tlwrUpper)):
+        is_in_contact[0] = True
     rospy.Subscriber("/bus1/ft_sensor1/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rwr)
+    if(not(ftData[0] >= frwrLower and ftData[0]<=frwrUpper and ftData[1] >= trwrLower and ftData[1]<=trwrUpper)):
+        is_in_contact[1] = True
     rospy.Subscriber("/bus2/ft_sensor2/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_ll)
+    if(not(ftData[0] >= fllLower and ftData[0]<=fllUpper and ftData[1] >= tllLower and ftData[1]<=tllUpper)):
+        is_in_contact[2] = True
     rospy.Subscriber("/bus3/ft_sensor3/ft_sensor_readings/wrench", WrenchStamped, wrench_callback_rl)
-    limbsInContact = {'leftHand': False, 'rightHand': False,    # mock data
-                      'leftFoot': False, 'rightFoot': False}    # needs updating
-    return limbsInContact
+    if(not(ftData[0] >= frlLower and ftData[0]<=frlUpper and ftData[1] >= trlLower and ftData[1]<=trlUpper) ):
+        is_in_contact[3] = True
+    return is_in_contact
 # End of: LOAD FORCE-TORQUE SENSOR DATA
 
 
@@ -342,8 +415,11 @@ if __name__ == "__main__":
 
     # loop functionality
     rate = rospy.Rate(10)  # 10 Hz
-    while not rospy.is_shutdown():
 
+    # calculate the gaussian distribution that gives us our upper and lower limits, which will be used to calculate the amount of limbs in contact
+    startupCalc()
+    while not rospy.is_shutdown():
+        
         # load data from topics/sensors
         endPontVecs = load_endpoint_vectors()
         limbsInContact = load_ft_data()
