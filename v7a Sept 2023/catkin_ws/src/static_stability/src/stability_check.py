@@ -43,6 +43,7 @@ KIN_RLEG_TOPIC = "FKinematics_RLEG"
 
 # Global Variables
 vecGravity = Vector3()
+reads = 100000                         #number of times our code will read the ft data 
 sensors_visu = [0,0,0,0,0]
 """ 
 The variable confidence_level considers the level of confidence there is for intervals. 
