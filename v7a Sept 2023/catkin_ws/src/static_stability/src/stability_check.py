@@ -256,8 +256,15 @@ def calc_polygon(contactPoints):
         # Update the list: new_first_point becomes the first, new_second_point becomes the second,
         # and the initial second element is now the third
         contactPoints = [new_first_point, new_second_point] + contactPoints[1:]
-        cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
-        return cws
+    if len(contactPoints) == 1:
+        new_first_point = Vector3(contactPoints[0].x + 0.07, contactPoints[0].y, contactPoints[0].z)
+        # Create another new point by subtracting 0.07 from the x value of the first point
+        new_second_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y + 0.03, contactPoints[0].z)
+        new_third_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y - 0.03, contactPoints[0].z)
+        contactPoints = [new_first_point,new_second_point,new_third_point]
+
+    cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
+    return cws
     
     
 # End of: CALCULATE POLYGON
@@ -303,7 +310,8 @@ if __name__ == "__main__":
         contactPoints = calc_contact_points(endPontVecs, limbsInContact)
         cws = calc_polygon(contactPoints)
         stable = is_stable(cws)
-
+        if len(cws) == 0:
+            stable = None
         # publish stability
         # Toshi, this covers one of your responsibilities
         stability_pub.publish(Bool(stable))
