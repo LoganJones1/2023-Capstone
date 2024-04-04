@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Start the LIDAR driver -->
+ <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
+
+  <!-- Start the RealSense camera driver -->
+  <include file="$(find realsense2_camera)/launch/rs_t265.launch" />
+
+  <!-- Start the mapper node -->
+  <node pkg="mapper" type="mapper_node" name="mapper_node" output="screen" required="true" />
+  
+</launch>
