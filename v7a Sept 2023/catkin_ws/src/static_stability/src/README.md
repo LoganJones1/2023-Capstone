@@ -1,8 +1,3 @@
-
-
-
-HOW TO RUN
-
 # Kinematics Package and Static Stability Checker
 
 ## Overview
