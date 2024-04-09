@@ -43,6 +43,7 @@ KIN_RLEG_TOPIC = "FKinematics_RLEG"
 
 # Global Variables
 vecGravity = Vector3()
+reads = 100000                         #number of times our code will read the ft data 
 sensors_visu = [0,0,0,0,0]
 """ 
 The variable confidence_level considers the level of confidence there is for intervals. 
@@ -331,8 +332,15 @@ def calc_polygon(contactPoints):
         # Update the list: new_first_point becomes the first, new_second_point becomes the second,
         # and the initial second element is now the third
         contactPoints = [new_first_point, new_second_point] + contactPoints[1:]
-        cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
-        return cws
+    if len(contactPoints) == 1:
+        new_first_point = Vector3(contactPoints[0].x + 0.07, contactPoints[0].y, contactPoints[0].z)
+        # Create another new point by subtracting 0.07 from the x value of the first point
+        new_second_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y + 0.03, contactPoints[0].z)
+        new_third_point = Vector3(contactPoints[0].x - 0.07, contactPoints[0].y - 0.03, contactPoints[0].z)
+        contactPoints = [new_first_point,new_second_point,new_third_point]
+
+    cws = np.array([contactPoints])    # List of the three contact points that make up the support poligon
+    return cws
     
     
 # End of: CALCULATE POLYGON
@@ -344,11 +352,12 @@ def calc_polygon(contactPoints):
 # Calculate whether the center of mass (gravity vector) itersects with the
 # support polygon.
 def is_stable(contact_points):
-    # extract x, y coordinates
     
+    #check if we have a valid polygon
     if len(contact_points) < 3:
         raise ValueError("Must have at least 3 contact points in order to calculate stability")
 
+    #extract x, y coordinates
     polygon_points = contact_points[:, :2]
     center_of_mass = np.array([vecGravity.x, vecGravity.y])
 
@@ -360,7 +369,9 @@ def is_stable(contact_points):
     return inside_polygon
 # End of: CALCULATE STABILITY
 
-# used for debugging
+#used for debugging
+#visualizes the original contact points polygon in 3D
+#and in 2D, once it's been projected to a 2D space
 def visualize_polygon(contact_points):
     # extract x, y coordinates
     polygon_points = contact_points[:, :2]
@@ -421,7 +432,8 @@ if __name__ == "__main__":
         contactPoints = calc_contact_points(endPontVecs, limbsInContact)
         cws = calc_polygon(contactPoints)
         stable = is_stable(cws)
-
+        if len(cws) == 0:
+            stable = None
         # publish stability
         # Toshi, this covers one of your responsibilities
         stability_pub.publish(Bool(stable))
